@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teddy Label Printer</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        h1 span { color: #e94560; }
+
+        .card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #0f3460;
+        }
+
+        .drop-zone {
+            border: 2px dashed #0f3460;
+            border-radius: 10px;
+            padding: 50px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.05);
+        }
+
+        .drop-zone svg {
+            width: 60px;
+            height: 60px;
+            fill: #537895;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone p {
+            color: #537895;
+            font-size: 1.1rem;
+        }
+
+        .drop-zone .hint {
+            font-size: 0.85rem;
+            color: #3a5a7c;
+            margin-top: 8px;
+        }
+
+        input[type="file"] { display: none; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            background: #0f3460;
+            padding: 12px 15px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #537895;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #0f3460;
+            font-size: 0.95rem;
+        }
+
+        tr:hover td { background: rgba(15, 52, 96, 0.3); }
+
+        .qty-col { text-align: center; width: 80px; }
+
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #0f3460;
+        }
+
+        .summary .total {
+            font-size: 1.1rem;
+            color: #537895;
+        }
+
+        .summary .total strong {
+            color: #e94560;
+            font-size: 1.4rem;
+        }
+
+        .btn-group { display: flex; gap: 10px; }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-print {
+            background: #e94560;
+            color: #fff;
+        }
+
+        .btn-print:hover { background: #c73e54; }
+
+        .btn-reset {
+            background: transparent;
+            border: 1px solid #0f3460;
+            color: #537895;
+        }
+
+        .btn-reset:hover { border-color: #e94560; color: #e94560; }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status.success {
+            display: block;
+            background: rgba(46, 213, 115, 0.1);
+            color: #2ed573;
+            border: 1px solid rgba(46, 213, 115, 0.3);
+        }
+
+        .status.error {
+            display: block;
+            background: rgba(233, 69, 96, 0.1);
+            color: #e94560;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .status.loading {
+            display: block;
+            background: rgba(83, 120, 149, 0.1);
+            color: #537895;
+            border: 1px solid rgba(83, 120, 149, 0.3);
+        }
+
+        .hidden { display: none; }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+
+            .container, .card, .summary, .status, #uploadCard, #previewCard {
+                display: none !important;
+            }
+
+            #printArea {
+                display: block !important;
+            }
+
+            .label {
+                width: 4cm;
+                height: 2.5cm;
+                page-break-after: always;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 1mm;
+                margin: 0;
+            }
+
+            .label:last-child {
+                page-break-after: avoid;
+            }
+
+            .label svg {
+                width: 3.4cm;
+                height: 1.4cm;
+            }
+
+            .label .sku {
+                font-family: 'Courier New', monospace;
+                font-size: 7pt;
+                margin-top: 1mm;
+                color: #000;
+            }
+
+            .label .name {
+                font-family: Arial, sans-serif;
+                font-size: 6.5pt;
+                font-weight: bold;
+                text-align: center;
+                margin-top: 1mm;
+                color: #000;
+                max-width: 3.6cm;
+                overflow: hidden;
+                line-height: 1.2;
+            }
+
+            @page {
+                size: 4cm 2.5cm;
+                margin: 0;
+            }
+        }
+
+        #printArea { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span>Teddy</span> Label Printer</h1>
+
+        <!-- Upload Card -->
+        <div class="card" id="uploadCard">
+            <div class="drop-zone" id="dropZone">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11zm-3-7v4H9v-4H6l6-6 6 6h-3z"/></svg>
+                <p>اسحب ملف الإكسيل هنا</p>
+                <div class="hint">أو اضغط لاختيار الملف (.xlsx)</div>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls">
+        </div>
+
+        <!-- Preview Card -->
+        <div class="card hidden" id="previewCard">
+            <table>
+                <thead>
+                    <tr>
+                        <th>اسم المنتج</th>
+                        <th>SKU</th>
+                        <th class="qty-col">العدد</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+
+            <div class="summary">
+                <div class="total">
+                    اجمالي الليبلز: <strong id="totalCount">0</strong>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-reset" onclick="resetAll()">ملف جديد</button>
+                    <button class="btn btn-print" onclick="printLabels()">طباعة</button>
+                </div>
+            </div>
+
+            <div class="status" id="status"></div>
+        </div>
+    </div>
+
+    <!-- Hidden print area -->
+    <div id="printArea"></div>
+
+    <script>
+        let products = [];
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadCard = document.getElementById('uploadCard');
+        const previewCard = document.getElementById('previewCard');
+
+        // Drag and drop
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                handleFile(fileInput.files[0]);
+            }
+        });
+
+        async function handleFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showStatus('loading', 'جاري قراءة الملف...');
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error);
+
+                products = data.products;
+                renderTable();
+                uploadCard.classList.add('hidden');
+                previewCard.classList.remove('hidden');
+                hideStatus();
+            } catch (err) {
+                showStatus('error', 'خطأ: ' + err.message);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            products.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${p.name}</td>
+                    <td><code>${p.sku}</code></td>
+                    <td class="qty-col">${p.quantity}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const total = products.reduce((sum, p) => sum + p.quantity, 0);
+            document.getElementById('totalCount').textContent = total;
+        }
+
+        function printLabels() {
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = '';
+
+            products.forEach(p => {
+                for (let i = 0; i < p.quantity; i++) {
+                    const label = document.createElement('div');
+                    label.className = 'label';
+
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    label.appendChild(svg);
+
+                    const skuEl = document.createElement('div');
+                    skuEl.className = 'sku';
+                    skuEl.textContent = p.sku;
+                    label.appendChild(skuEl);
+
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'name';
+                    nameEl.textContent = p.name;
+                    label.appendChild(nameEl);
+
+                    printArea.appendChild(label);
+
+                    JsBarcode(svg, p.sku, {
+                        format: 'CODE128',
+                        width: 1.5,
+                        height: 45,
+                        displayValue: false,
+                        margin: 0,
+                    });
+                }
+            });
+
+            setTimeout(() => window.print(), 200);
+        }
+
+        function resetAll() {
+            products = [];
+            fileInput.value = '';
+            previewCard.classList.add('hidden');
+            uploadCard.classList.remove('hidden');
+            hideStatus();
+        }
+
+        function showStatus(type, msg) {
+            const el = document.getElementById('status');
+            el.className = 'status ' + type;
+            el.innerHTML = msg;
+        }
+
+        function hideStatus() {
+            document.getElementById('status').className = 'status';
+        }
+    </script>
+</body>
+</html>
