@@ -218,6 +218,14 @@
                 color: #000;
             }
 
+            .label .price {
+                font-family: Arial, sans-serif;
+                font-size: 8pt;
+                font-weight: bold;
+                margin-top: 1mm;
+                color: #000;
+            }
+
             .label .name {
                 font-family: Arial, sans-serif;
                 font-size: 6.5pt;
@@ -260,6 +268,7 @@
                     <tr>
                         <th>اسم المنتج</th>
                         <th>SKU</th>
+                        <th class="qty-col">السعر</th>
                         <th class="qty-col">العدد</th>
                     </tr>
                 </thead>
@@ -351,6 +360,7 @@
                 tr.innerHTML = `
                     <td>${p.name}</td>
                     <td><code>${p.sku}</code></td>
+                    <td class="qty-col">${p.price} EGP</td>
                     <td class="qty-col">${p.quantity}</td>
                 `;
                 tbody.appendChild(tr);
@@ -376,6 +386,11 @@
                     skuEl.className = 'sku';
                     skuEl.textContent = p.sku;
                     label.appendChild(skuEl);
+
+                    const priceEl = document.createElement('div');
+                    priceEl.className = 'price';
+                    priceEl.textContent = p.price + ' EGP';
+                    label.appendChild(priceEl);
 
                     const nameEl = document.createElement('div');
                     nameEl.className = 'name';

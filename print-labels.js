@@ -61,6 +61,7 @@ async function main() {
         const productName = String(row[0]).trim();
         const sku = String(row[1]).trim();
         const quantity = parseInt(row[2]) || 1;
+        const price = row[3] !== undefined ? parseFloat(row[3]) || 0 : 0;
 
         const barcodeBuffer = await generateBarcode(sku);
 
@@ -88,14 +89,22 @@ async function main() {
                     align: 'center',
                 });
 
-            // Product name - centered below SKU
+            // Price - centered below SKU
+            doc.fontSize(8)
+                .font('Helvetica-Bold')
+                .text(price + ' EGP', 5, 48, {
+                    width: LABEL_WIDTH - 10,
+                    align: 'center',
+                });
+
+            // Product name - centered below price
             doc.fontSize(6.5)
                 .font('Helvetica-Bold')
-                .text(productName, 5, 50, {
+                .text(productName, 5, 58, {
                     width: LABEL_WIDTH - 10,
                     align: 'center',
                     lineBreak: true,
-                    height: 20,
+                    height: 15,
                 });
 
             totalLabels++;

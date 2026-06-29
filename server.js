@@ -25,6 +25,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
             name: String(row[0]).trim(),
             sku: String(row[1]).trim(),
             quantity: parseInt(row[2]) || 1,
+            price: row[3] !== undefined ? parseFloat(row[3]) || 0 : 0,
         }));
 
         const totalLabels = products.reduce((sum, p) => sum + p.quantity, 0);
