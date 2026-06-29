@@ -360,7 +360,7 @@
                 tr.innerHTML = `
                     <td>${p.name}</td>
                     <td><code>${p.sku}</code></td>
-                    <td class="qty-col">${p.price} EGP</td>
+                    <td class="qty-col">${p.price || 0} EGP</td>
                     <td class="qty-col">${p.quantity}</td>
                 `;
                 tbody.appendChild(tr);
@@ -389,7 +389,7 @@
 
                     const priceEl = document.createElement('div');
                     priceEl.className = 'price';
-                    priceEl.textContent = p.price + ' EGP';
+                    priceEl.textContent = (p.price || 0) + ' EGP';
                     label.appendChild(priceEl);
 
                     const nameEl = document.createElement('div');
